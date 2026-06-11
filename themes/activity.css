@@ -1,0 +1,28 @@
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+:root {
+  --bg: #FFF8F5;
+  --point: #D85A30;
+  --sub: #F5C4B3;
+  --base: #1A1A2E;
+  --text-primary: #1A1A2E;
+  --text-secondary: #D85A30;
+  --card-bg: rgba(216, 90, 48, 0.06);
+  --border: rgba(216, 90, 48, 0.20);
+  --shadow: 0 4px 32px rgba(216, 90, 48, 0.12);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  width: 1080px;
+  height: 1350px;
+  background-color: var(--bg);
+  font-family: 'Pretendard', 'Apple SD Gothic Neo', sans-serif;
+  color: var(--text-primary);
+  overflow: hidden;
+}
