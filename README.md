@@ -123,11 +123,10 @@ images/
 
 ## 테마
 
-| 테마 | 배경 | 포인트 컬러 |
-|------|------|------------|
-| `info` | 딥 퍼플 #1A1A2E | #7F77DD |
-| `life` | 웜 코럴 #FFF8F5 | #D85A30 |
-| `tech` | 나이트 블루 #0F1923 | #378ADD |
+| `info` | `life` | `tech` |
+|--------|--------|--------|
+| ![info](assets/slide_01_info.png) | ![life](assets/slide_01_life.png) | ![tech](assets/slide_01.png) |
+| 딥 퍼플 #1A1A2E / #7F77DD | 웜 코럴 #FFF8F5 / #D85A30 | 나이트 블루 #0F1923 / #378ADD |
 
 ## 프로젝트 구조
 
