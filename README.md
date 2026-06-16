@@ -2,6 +2,20 @@
 
 Claude Code CLI + Playwright 기반 인스타그램 카드뉴스 자동 생성 파이프라인.
 
+## 결과물 예시
+
+> 테마: `tech` / 주제: AI가 바꾸는 개발자의 미래
+
+| 커버 | 본문 1 | 본문 2 |
+|------|--------|--------|
+| ![slide_01](assets/slide_01.png) | ![slide_02](assets/slide_02.png) | ![slide_03](assets/slide_03.png) |
+
+| 본문 3 | 요약 | CTA |
+|--------|------|-----|
+| ![slide_04](assets/slide_04.png) | ![slide_05](assets/slide_05.png) | ![slide_06](assets/slide_06.png) |
+
+---
+
 ## 사전 요구 사항
 
 - Python 3.10+
