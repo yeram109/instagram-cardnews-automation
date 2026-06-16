@@ -70,7 +70,7 @@ def render_slides(slide_data: dict, theme: str, images_dir: Path | None) -> list
             title=slide.get("title", ""),
             body=slide.get("body", ""),
             layout=layout,
-            image_path=image_path.as_uri() if image_path else "",
+            image_path=image_path.resolve().as_uri() if image_path else "",
         )
         p = HTML_DIR / f"slide_{idx:02d}.html"
         p.write_text(html, encoding="utf-8")
