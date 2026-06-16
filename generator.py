@@ -43,8 +43,26 @@ def _claude_cmd() -> list[str]:
     return [claude_path]
 
 
-def generate_slide_content(topic: str, text: str) -> dict:
+def generate_slide_content(
+    topic: str,
+    text: str,
+    feedback: str = "",
+    previous_result: dict | None = None,
+) -> dict:
     """Claude Code CLI를 통해 슬라이드 텍스트를 생성한다."""
+    feedback_section = ""
+    if feedback and previous_result:
+        prev_json = json.dumps(previous_result, ensure_ascii=False, indent=2)
+        feedback_section = f"""
+
+[이전 생성 결과]
+{prev_json}
+
+[수정 요청]
+{feedback}
+
+위 수정 요청을 반영하여 다시 생성해주세요."""
+
     # --system-prompt 인자에 멀티라인 한국어를 넣으면 cmd.exe가 인자를 잘못 파싱해
     # --output-format json이 무시되므로, 시스템 지시사항을 stdin에 포함시킨다
     user_message = f"""[지시사항]
@@ -54,7 +72,7 @@ def generate_slide_content(topic: str, text: str) -> dict:
 주제: {topic}
 
 원문:
-{text}
+{text}{feedback_section}
 
 위 내용을 바탕으로 인스타그램 카드뉴스 슬라이드 텍스트를 아래 JSON 형식으로 생성하세요.
 slides 배열은 index 2~4 (본문 3장)로 구성하세요.

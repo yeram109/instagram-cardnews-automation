@@ -1,4 +1,3 @@
-import tempfile
 from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader
@@ -6,12 +5,12 @@ from PIL import Image
 
 TEMPLATES_DIR = Path(__file__).parent / "templates"
 THEMES_DIR = Path(__file__).parent / "themes"
+HTML_DIR = Path(__file__).parent / "output" / "html"
 
 _SUPPORTED_EXTS = {".jpg", ".jpeg", ".png", ".webp"}
 
 
 def _find_image(images_dir: Path, slide_index: int) -> Path | None:
-    """Return the image path for a given slide index, or None."""
     if images_dir is None:
         return None
     for ext in _SUPPORTED_EXTS:
@@ -22,7 +21,6 @@ def _find_image(images_dir: Path, slide_index: int) -> Path | None:
 
 
 def _select_layout(image_path: Path | None) -> str:
-    """Choose layout based on image presence and aspect ratio."""
     if image_path is None:
         return "text-only"
 
@@ -40,14 +38,14 @@ def _select_layout(image_path: Path | None) -> str:
 
 
 def render_slides(slide_data: dict, theme: str, images_dir: Path | None) -> list[Path]:
-    """Render all slides to HTML files and return list of file paths."""
+    """Render all slides to output/html/ and return list of file paths."""
+    HTML_DIR.mkdir(parents=True, exist_ok=True)
+
     env = Environment(loader=FileSystemLoader(str(TEMPLATES_DIR)))
     theme_css = (THEMES_DIR / f"{theme}.css").as_uri()
 
-    out_dir = Path(tempfile.mkdtemp(prefix="cardnews_"))
     html_files: list[Path] = []
 
-    # Slide 1: cover
     cover = slide_data.get("cover", {})
     html = env.get_template("cover.html").render(
         theme_css=theme_css,
@@ -55,11 +53,10 @@ def render_slides(slide_data: dict, theme: str, images_dir: Path | None) -> list
         hook=cover.get("hook", ""),
         subtitle=cover.get("subtitle", ""),
     )
-    p = out_dir / "slide_01.html"
+    p = HTML_DIR / "slide_01.html"
     p.write_text(html, encoding="utf-8")
     html_files.append(p)
 
-    # Slides 2-4: body
     for slide in slide_data.get("slides", []):
         idx = slide.get("index", 2)
         image_path = _find_image(images_dir, idx)
@@ -73,23 +70,21 @@ def render_slides(slide_data: dict, theme: str, images_dir: Path | None) -> list
             layout=layout,
             image_path=image_path.as_uri() if image_path else "",
         )
-        p = out_dir / f"slide_{idx:02d}.html"
+        p = HTML_DIR / f"slide_{idx:02d}.html"
         p.write_text(html, encoding="utf-8")
         html_files.append(p)
 
-    # Slide 5: summary
     summary = slide_data.get("summary", {})
     html = env.get_template("summary.html").render(
         theme_css=theme_css,
         points=summary.get("points", []),
     )
-    p = out_dir / "slide_05.html"
+    p = HTML_DIR / "slide_05.html"
     p.write_text(html, encoding="utf-8")
     html_files.append(p)
 
-    # Slide 6: CTA (fixed)
     html = env.get_template("cta.html").render(theme_css=theme_css)
-    p = out_dir / "slide_06.html"
+    p = HTML_DIR / "slide_06.html"
     p.write_text(html, encoding="utf-8")
     html_files.append(p)
 
