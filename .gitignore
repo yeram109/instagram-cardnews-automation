@@ -20,6 +20,7 @@ env/
 # 임시 파일
 *.tmp
 cardnews_*/
+output/html/
 
 # IDE
 .vscode/
