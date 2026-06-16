@@ -1,15 +1,15 @@
 @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
 
 :root {
-  --bg: #1A1A2E;
-  --point: #7F77DD;
-  --sub: #AFA9EC;
-  --base: #F5F5FF;
-  --text-primary: #F5F5FF;
-  --text-secondary: #AFA9EC;
-  --card-bg: rgba(127, 119, 221, 0.08);
-  --border: rgba(127, 119, 221, 0.25);
-  --shadow: 0 4px 32px rgba(127, 119, 221, 0.18);
+  --bg: #0F1923;
+  --point: #378ADD;
+  --sub: #85B7EB;
+  --base: #E6F1FB;
+  --text-primary: #E6F1FB;
+  --text-secondary: #85B7EB;
+  --card-bg: rgba(55, 138, 221, 0.08);
+  --border: rgba(55, 138, 221, 0.22);
+  --shadow: 0 4px 32px rgba(55, 138, 221, 0.18);
 }
 
 * {

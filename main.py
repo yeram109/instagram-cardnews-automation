@@ -14,7 +14,7 @@ def parse_args():
     )
     parser.add_argument(
         "--theme",
-        choices=["tech", "activity", "trend"],
+        choices=["info", "life", "tech"],
         default=None,
         help="카드뉴스 테마 (tech / activity / trend)",
     )
