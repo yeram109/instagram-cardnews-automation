@@ -57,8 +57,10 @@ def render_slides(slide_data: dict, theme: str, images_dir: Path | None) -> list
     p.write_text(html, encoding="utf-8")
     html_files.append(p)
 
+    last_body_index = 4
     for slide in slide_data.get("slides", []):
         idx = slide.get("index", 2)
+        last_body_index = max(last_body_index, idx)
         image_path = _find_image(images_dir, idx)
         layout = _select_layout(image_path)
 
@@ -74,17 +76,20 @@ def render_slides(slide_data: dict, theme: str, images_dir: Path | None) -> list
         p.write_text(html, encoding="utf-8")
         html_files.append(p)
 
+    summary_index = last_body_index + 1
+    cta_index = last_body_index + 2
+
     summary = slide_data.get("summary", {})
     html = env.get_template("summary.html").render(
         theme_css=theme_css,
         points=summary.get("points", []),
     )
-    p = HTML_DIR / "slide_05.html"
+    p = HTML_DIR / f"slide_{summary_index:02d}.html"
     p.write_text(html, encoding="utf-8")
     html_files.append(p)
 
     html = env.get_template("cta.html").render(theme_css=theme_css)
-    p = HTML_DIR / "slide_06.html"
+    p = HTML_DIR / f"slide_{cta_index:02d}.html"
     p.write_text(html, encoding="utf-8")
     html_files.append(p)
 
