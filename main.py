@@ -1,9 +1,14 @@
 import argparse
+import os
 import sys
 import webbrowser
 from pathlib import Path
 
+from dotenv import load_dotenv
+load_dotenv()
+
 from generator import generate_slide_content
+from image_fetcher import fetch_images, IMAGES_DIR
 from renderer import render_slides, HTML_DIR
 from capture import capture_slides
 
@@ -21,9 +26,9 @@ def parse_args():
     parser.add_argument("--topic", default=None, help="카드뉴스 제목/주제")
     parser.add_argument("--text", default=None, help="슬라이드 생성에 사용할 원문 텍스트")
     parser.add_argument(
-        "--images",
-        default=None,
-        help="이미지 폴더 경로 (없으면 text-only로 처리)",
+        "--unsplash-key",
+        default=os.environ.get("UNSPLASH_ACCESS_KEY"),
+        help="Unsplash API access key (또는 환경변수 UNSPLASH_ACCESS_KEY)",
     )
     parser.add_argument(
         "--capture-only",
@@ -61,14 +66,19 @@ def main():
     if not args.theme or not args.topic or not args.text:
         parser.error("--theme, --topic, --text 는 필수 인자입니다.")
 
-    images_dir = Path(args.images) if args.images else None
-    if images_dir and not images_dir.exists():
-        print(f"[오류] 이미지 폴더를 찾을 수 없습니다: {images_dir}", file=sys.stderr)
-        sys.exit(1)
-
     print("[1/3] Claude API로 슬라이드 텍스트 생성 중...")
     slide_data = generate_slide_content(topic=args.topic, text=args.text)
     slide_data["topic"] = args.topic
+
+    if args.unsplash_key:
+        print("[1.5/3] 이미지 준비 중... (images/ 직접 추가 파일 우선, 나머지 Unsplash 다운로드)")
+        images_dir = fetch_images(slide_data, args.unsplash_key)
+    elif IMAGES_DIR.exists():
+        print(f"  [참고] images/ 폴더의 파일 사용 (Unsplash 키 없음)")
+        images_dir = IMAGES_DIR
+    else:
+        print("  [참고] 이미지 없음 → 텍스트 전용으로 처리")
+        images_dir = None
 
     round_num = 1
     while True:
@@ -107,6 +117,9 @@ def main():
                 previous_result=slide_data,
             )
             slide_data["topic"] = args.topic
+            if args.unsplash_key:
+                print("[1.5/3] 이미지 재준비 중...")
+                images_dir = fetch_images(slide_data, args.unsplash_key)
             round_num += 1
 
         elif choice == "e":
