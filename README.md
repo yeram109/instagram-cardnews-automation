@@ -52,13 +52,13 @@ playwright install chromium
 
 ### 2-3. 환경변수 설정
 
-프로젝트 루트에 `.env` 파일을 생성하고 Unsplash Access Key를 입력합니다.
+Unsplash 이미지 자동 다운로드를 사용하려면 프로젝트 루트에 `.env` 파일을 생성하고 Access Key를 입력합니다.
 
 ```
 UNSPLASH_ACCESS_KEY=여기에_키_입력
 ```
 
-키를 설정하지 않으면 이미지 없이 텍스트 전용으로 생성됩니다.
+키를 설정하지 않아도 `images/` 폴더에 직접 파일을 추가하면 이미지를 사용할 수 있습니다.
 
 <br>
 
@@ -91,7 +91,7 @@ python main.py --theme <테마> --topic <주제> --text <원문>
 
 이미지 소스는 두 가지를 혼용할 수 있으며, 모두 `images/` 폴더 하나로 통합 관리됩니다.
 
-**직접 추가**: `images/` 폴더에 슬라이드 인덱스에 맞게 파일을 넣으면 해당 슬라이드에 우선 적용됩니다.
+**직접 추가**: `images/` 폴더에 슬라이드 인덱스에 맞게 파일을 넣으면 해당 슬라이드에 우선 적용됩니다. Unsplash 키 없이도 동작합니다.
 
 ```
 images/
@@ -99,7 +99,15 @@ images/
   slide3.png   # 본문 슬라이드 3에 적용 (.png / .webp 도 가능)
 ```
 
-**Unsplash 자동**: `images/`에 파일이 없는 슬라이드 중 Claude가 `image_query`를 생성한 슬라이드는 Unsplash에서 자동으로 이미지를 다운로드해 채웁니다.
+**Unsplash 자동**: `.env`에 키를 설정하면 `images/`에 파일이 없는 슬라이드 중 Claude가 `image_query`를 생성한 슬라이드를 Unsplash에서 자동으로 채웁니다.
+
+슬라이드별 이미지 결정 우선순위:
+
+```
+images/slideN.* 있음  →  직접 추가한 파일 사용
+없음 + Unsplash 키 있음 + image_query 있음  →  Unsplash 자동 다운로드
+없음 + 그 외  →  텍스트 전용
+```
 
 이미지 비율에 따라 레이아웃이 자동 선택됩니다.
 
