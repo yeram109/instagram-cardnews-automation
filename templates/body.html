@@ -72,7 +72,7 @@
 
     /* ── image-blur-bg ── */
     .layout-image-blur-bg {
-      justify-content: center;
+      justify-content: flex-end;
       padding: 96px;
     }
     .layout-image-blur-bg .blur-bg {
@@ -84,7 +84,18 @@
       width: 100%;
       height: 100%;
       object-fit: cover;
-      filter: blur(18px) brightness(0.35) saturate(0.7);
+      filter: brightness(0.75);
+    }
+    .layout-image-blur-bg .blur-bg::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        to bottom,
+        rgba(0,0,0,0.1) 0%,
+        rgba(0,0,0,0.6) 60%,
+        rgba(0,0,0,0.85) 100%
+      );
     }
     .layout-image-blur-bg .text-block {
       position: relative;

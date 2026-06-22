@@ -47,11 +47,13 @@ def render_slides(slide_data: dict, theme: str, images_dir: Path | None) -> list
     html_files: list[Path] = []
 
     cover = slide_data.get("cover", {})
+    cover_image = _find_image(images_dir, 1)
     html = env.get_template("cover.html").render(
         theme_css=theme_css,
         topic=slide_data.get("topic", ""),
         hook=cover.get("hook", ""),
         subtitle=cover.get("subtitle", ""),
+        image_path=cover_image.resolve().as_uri() if cover_image else "",
     )
     p = HTML_DIR / "slide_01.html"
     p.write_text(html, encoding="utf-8")
