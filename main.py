@@ -1,4 +1,5 @@
 import argparse
+import json
 import os
 import sys
 import webbrowser
@@ -11,6 +12,8 @@ from generator import generate_slide_content
 from image_fetcher import fetch_images, IMAGES_DIR
 from renderer import render_slides, HTML_DIR
 from capture import capture_slides
+
+SLIDE_DATA_PATH = Path("output/slide_data.json")
 
 
 def parse_args():
@@ -31,6 +34,11 @@ def parse_args():
         help="Unsplash API access key (또는 환경변수 UNSPLASH_ACCESS_KEY)",
     )
     parser.add_argument(
+        "--render-only",
+        action="store_true",
+        help="output/slide_data.json 으로 HTML 재렌더링 (텍스트/이미지 생성 생략)",
+    )
+    parser.add_argument(
         "--capture-only",
         action="store_true",
         help="output/html/ 의 HTML을 그대로 PNG로 변환 (생성/렌더링 생략)",
@@ -41,6 +49,18 @@ def parse_args():
 def open_preview(html_files: list[Path]) -> None:
     for html_path in html_files:
         webbrowser.open(html_path.as_uri())
+
+
+def save_slide_data(slide_data: dict) -> None:
+    SLIDE_DATA_PATH.parent.mkdir(exist_ok=True)
+    SLIDE_DATA_PATH.write_text(json.dumps(slide_data, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def load_slide_data() -> dict:
+    if not SLIDE_DATA_PATH.exists():
+        print(f"[오류] {SLIDE_DATA_PATH} 파일이 없습니다. 먼저 카드뉴스를 생성하세요.", file=sys.stderr)
+        sys.exit(1)
+    return json.loads(SLIDE_DATA_PATH.read_text(encoding="utf-8"))
 
 
 def main():
@@ -62,6 +82,25 @@ def main():
             print(f"  {path}")
         return
 
+    # --render-only: 저장된 slide_data로 HTML 재렌더링
+    if args.render_only:
+        if not args.theme:
+            parser.error("--render-only 사용 시 --theme 는 필수입니다.")
+        slide_data = load_slide_data()
+        images_dir = IMAGES_DIR if IMAGES_DIR.exists() else None
+        print(f"[2/3] HTML 슬라이드 재렌더링 중... (테마: {args.theme})")
+        html_files = render_slides(slide_data=slide_data, theme=args.theme, images_dir=images_dir)
+        print(f"  → output/html/ 에 저장됨")
+        open_preview(html_files)
+        print("  → 브라우저에서 미리보기를 열었습니다\n")
+        input("  [엔터] PNG 변환 시작...")
+        print("\n[3/3] Playwright PNG 캡처 중...")
+        output_paths = capture_slides(html_files)
+        print("\n완료! 생성된 파일:")
+        for path in output_paths:
+            print(f"  {path}")
+        return
+
     # 일반 모드: --theme / --topic / --text 필수
     if not args.theme or not args.topic or not args.text:
         parser.error("--theme, --topic, --text 는 필수 인자입니다.")
@@ -69,6 +108,7 @@ def main():
     print("[1/3] Claude API로 슬라이드 텍스트 생성 중...")
     slide_data = generate_slide_content(topic=args.topic, text=args.text)
     slide_data["topic"] = args.topic
+    save_slide_data(slide_data)
 
     if args.unsplash_key:
         print("[1.5/3] 이미지 준비 중... (images/ 직접 추가 파일 우선, 나머지 Unsplash 다운로드)")
@@ -117,6 +157,7 @@ def main():
                 previous_result=slide_data,
             )
             slide_data["topic"] = args.topic
+            save_slide_data(slide_data)
             if args.unsplash_key:
                 print("[1.5/3] 이미지 재준비 중...")
                 images_dir = fetch_images(slide_data, args.unsplash_key)

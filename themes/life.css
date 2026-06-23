@@ -12,6 +12,22 @@
   --shadow: 0 4px 32px rgba(216, 90, 48, 0.12);
 }
 
+/* image-blur-bg 레이아웃에서 다크 오버레이 위 텍스트를 밝게 */
+.layout-image-blur-bg .title {
+  color: #FFFFFF;
+}
+.layout-image-blur-bg .body-text {
+  color: rgba(255, 255, 255, 0.85);
+}
+.layout-image-blur-bg .slide-num-tag {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #FFFFFF;
+}
+.layout-image-blur-bg .slide-num {
+  color: #FFFFFF;
+}
+
 * {
   margin: 0;
   padding: 0;

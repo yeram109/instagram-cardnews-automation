@@ -17,31 +17,7 @@
       background-color: var(--bg);
     }
 
-    /* ── cover image background ── */
-    .cover-bg {
-      position: absolute;
-      inset: 0;
-      z-index: 0;
-    }
-    .cover-bg img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      filter: brightness(0.6);
-    }
-    .cover-bg::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(
-        to bottom,
-        rgba(0,0,0,0.25) 0%,
-        rgba(0,0,0,0.55) 55%,
-        rgba(0,0,0,0.8) 100%
-      );
-    }
-
-    /* decorative background circles */
+    /* decorative background circles (no-image only) */
     .deco-circle {
       position: absolute;
       border-radius: 50%;
@@ -131,38 +107,50 @@
       z-index: 2;
     }
 
-    /* ── has-image 오버라이드 ── */
+    /* ── has-image: 상단 이미지 + 하단 텍스트 ── */
     .slide.has-image {
-      justify-content: flex-end;
-      align-items: flex-start;
+      justify-content: flex-start;
+      align-items: stretch;
     }
     .slide.has-image .deco-circle,
     .slide.has-image .deco-line {
       display: none;
     }
+
+    .cover-img-area {
+      width: 100%;
+      height: 600px;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+    .cover-img-area img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
     .slide.has-image .content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
       text-align: left;
-      padding: 0 96px 120px;
+      padding: 72px 96px;
     }
     .slide.has-image .content .divider {
       margin-left: 0;
-    }
-    .slide.has-image .hook {
-      color: #fff;
-    }
-    .slide.has-image .subtitle {
-      color: rgba(255, 255, 255, 0.75);
     }
   </style>
 </head>
 <body>
   <div class="slide{% if image_path %} has-image{% endif %}">
     {% if image_path %}
-      <div class="cover-bg"><img src="{{ image_path }}" alt="" /></div>
+      <div class="cover-img-area"><img src="{{ image_path }}" alt="" /></div>
+    {% else %}
+      <div class="deco-circle large"></div>
+      <div class="deco-circle medium"></div>
+      <div class="deco-line"></div>
     {% endif %}
-    <div class="deco-circle large"></div>
-    <div class="deco-circle medium"></div>
-    <div class="deco-line"></div>
 
     <div class="content">
       <p class="label">{{ topic }}</p>

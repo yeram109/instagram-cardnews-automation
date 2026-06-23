@@ -10,13 +10,11 @@ SYSTEM_PROMPT = """당신은 인스타그램 카드뉴스 콘텐츠 작가입니
 규칙:
 - 커버 훅 문구는 15자 이내, 호기심을 유발해야 합니다
 - 본문 각 슬라이드는 제목 + 3~4줄 이내 본문으로 구성합니다
-- 본문 슬라이드 수는 원문 분량에 따라 3~5장으로 조절하세요
-  · 핵심이 3가지 이내이거나 원문이 짧으면 → 3장 (index 2~4)
-  · 내용이 충분하면 → 4장 (index 2~5)
+- 본문 슬라이드 수는 원문 분량에 따라 4~5장으로 조절하세요
+  · 원문이 짧거나 핵심이 4가지 이내이면 → 4장 (index 2~5)
   · 원문이 풍부하고 다룰 주제가 많으면 → 5장 (index 2~6)
 - 정리 슬라이드는 핵심 요점 3가지를 간결하게 작성합니다
-- image_query는 이미지가 내용 전달에 실질적으로 도움이 되는 슬라이드에만 포함합니다
-  (추상적이거나 텍스트만으로 충분한 슬라이드는 image_query를 생략합니다)
+- image_query는 커버와 모든 본문 슬라이드에 반드시 포함합니다
 - image_query는 Unsplash에서 검색할 영어 키워드 2~3단어로 작성합니다 (예: "AI robot future")
 - 요약·CTA 슬라이드에는 image_query를 추가하지 않습니다
 - JSON만 반환하고, 마크다운 코드블록(```) 없이 순수 JSON만 출력하세요"""
@@ -24,12 +22,14 @@ SYSTEM_PROMPT = """당신은 인스타그램 카드뉴스 콘텐츠 작가입니
 OUTPUT_FORMAT = """{
   "cover": {
     "hook": "커버 훅 문구 (15자 이내, 호기심 유발)",
-    "subtitle": "부제목"
+    "subtitle": "부제목",
+    "image_query": "english keywords 2-3 words"
   },
   "slides": [
-    {"index": 2, "title": "슬라이드 제목", "body": "본문 내용 (3~4줄 이내)"},
-    {"index": 3, "title": "슬라이드 제목", "body": "본문 내용 (3~4줄 이내)"},
-    {"index": 4, "title": "슬라이드 제목", "body": "본문 내용 (3~4줄 이내)"}
+    {"index": 2, "title": "슬라이드 제목", "body": "본문 내용 (3~4줄 이내)", "image_query": "english keywords 2-3 words"},
+    {"index": 3, "title": "슬라이드 제목", "body": "본문 내용 (3~4줄 이내)", "image_query": "english keywords 2-3 words"},
+    {"index": 4, "title": "슬라이드 제목", "body": "본문 내용 (3~4줄 이내)", "image_query": "english keywords 2-3 words"},
+    {"index": 5, "title": "슬라이드 제목", "body": "본문 내용 (3~4줄 이내)", "image_query": "english keywords 2-3 words"}
   ],
   "summary": {
     "points": ["요점 1", "요점 2", "요점 3"]
@@ -81,7 +81,7 @@ def generate_slide_content(
 {text}{feedback_section}
 
 위 내용을 바탕으로 인스타그램 카드뉴스 슬라이드 텍스트를 아래 JSON 형식으로 생성하세요.
-원문 분량에 따라 slides 배열을 3~5장(index 2~4 / 2~5 / 2~6)으로 구성하세요.
+원문 분량에 따라 slides 배열을 4~5장(index 2~5 / 2~6)으로 구성하세요.
 
 출력 형식:
 {OUTPUT_FORMAT}"""
@@ -119,6 +119,12 @@ def generate_slide_content(
         raw = raw.split("```")[1]
         if raw.startswith("json"):
             raw = raw[4:]
+
+    # 앞뒤 설명 텍스트를 제거하고 JSON 블록만 추출
+    start = raw.find("{")
+    end = raw.rfind("}")
+    if start != -1 and end != -1:
+        raw = raw[start:end + 1]
 
     try:
         return json.loads(raw.strip())
