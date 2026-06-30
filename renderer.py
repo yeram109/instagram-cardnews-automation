@@ -32,7 +32,7 @@ def _select_layout(image_path: Path | None) -> str:
     if ratio >= 1.5:
         return "image-top"
     elif ratio >= 0.85:
-        return "image-split"
+        return "image-center"
     else:
         return "image-blur-bg"
 
@@ -48,11 +48,13 @@ def render_slides(slide_data: dict, theme: str, images_dir: Path | None) -> list
 
     cover = slide_data.get("cover", {})
     cover_image = _find_image(images_dir, 1)
+    cover_layout = _select_layout(cover_image)
     html = env.get_template("cover.html").render(
         theme_css=theme_css,
         topic=slide_data.get("topic", ""),
         hook=cover.get("hook", ""),
         subtitle=cover.get("subtitle", ""),
+        layout=cover_layout,
         image_path=cover_image.resolve().as_uri() if cover_image else "",
     )
     p = HTML_DIR / "slide_01.html"

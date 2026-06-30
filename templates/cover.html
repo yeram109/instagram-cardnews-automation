@@ -10,14 +10,25 @@
       height: 1350px;
       display: flex;
       flex-direction: column;
-      justify-content: center;
-      align-items: center;
       position: relative;
       overflow: hidden;
       background-color: var(--bg);
     }
 
-    /* decorative background circles (no-image only) */
+    /* ── text-only ── */
+    .layout-text-only {
+      justify-content: center;
+      align-items: center;
+    }
+    .layout-text-only .content {
+      text-align: center;
+      padding: 0 96px;
+    }
+    .layout-text-only .content .divider {
+      margin: 0 auto 44px;
+    }
+
+    /* decorative elements (text-only only) */
     .deco-circle {
       position: absolute;
       border-radius: 50%;
@@ -47,11 +58,101 @@
       transform: translateY(-50%);
     }
 
+    /* ── image-top ── */
+    .layout-image-top {
+      flex-direction: column;
+    }
+    .layout-image-top .img-area {
+      width: 100%;
+      height: 600px;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+    .layout-image-top .img-area img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .layout-image-top .content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 72px 96px;
+    }
+
+    /* ── image-center ── */
+    .layout-image-center {
+      justify-content: center;
+      padding: 80px;
+      gap: 48px;
+    }
+    .layout-image-center .img-area {
+      width: 75%;
+      align-self: center;
+      aspect-ratio: 1 / 1;
+      overflow: hidden;
+      border-radius: 16px;
+      flex-shrink: 0;
+    }
+    .layout-image-center .img-area img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .layout-image-center .content {
+      width: 100%;
+    }
+
+    /* ── image-blur-bg ── */
+    .layout-image-blur-bg {
+      justify-content: flex-end;
+      padding: 96px;
+    }
+    .layout-image-blur-bg .blur-bg {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+    }
+    .layout-image-blur-bg .blur-bg img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: brightness(0.6);
+    }
+    .layout-image-blur-bg .blur-bg::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        to bottom,
+        rgba(0,0,0,0.15) 0%,
+        rgba(0,0,0,0.55) 55%,
+        rgba(0,0,0,0.85) 100%
+      );
+    }
+    .layout-image-blur-bg .content {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+    }
+    .layout-image-blur-bg .hook {
+      color: #fff;
+    }
+    .layout-image-blur-bg .subtitle {
+      color: rgba(255, 255, 255, 0.8);
+    }
+    .layout-image-blur-bg .label {
+      color: rgba(255, 255, 255, 0.7);
+    }
+    .layout-image-blur-bg .slide-num {
+      color: #fff;
+    }
+
+    /* ── shared content styles ── */
     .content {
       position: relative;
       z-index: 2;
-      text-align: center;
-      padding: 0 96px;
       max-width: 100%;
     }
 
@@ -84,7 +185,7 @@
       width: 64px;
       height: 4px;
       background: var(--point);
-      margin: 0 auto 44px;
+      margin-bottom: 44px;
       border-radius: 2px;
     }
 
@@ -104,52 +205,25 @@
       font-weight: 600;
       color: var(--point);
       opacity: 0.6;
-      z-index: 2;
-    }
-
-    /* ── has-image: 상단 이미지 + 하단 텍스트 ── */
-    .slide.has-image {
-      justify-content: flex-start;
-      align-items: stretch;
-    }
-    .slide.has-image .deco-circle,
-    .slide.has-image .deco-line {
-      display: none;
-    }
-
-    .cover-img-area {
-      width: 100%;
-      height: 600px;
-      flex-shrink: 0;
-      overflow: hidden;
-    }
-    .cover-img-area img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .slide.has-image .content {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      text-align: left;
-      padding: 72px 96px;
-    }
-    .slide.has-image .content .divider {
-      margin-left: 0;
+      z-index: 10;
     }
   </style>
 </head>
 <body>
-  <div class="slide{% if image_path %} has-image{% endif %}">
-    {% if image_path %}
-      <div class="cover-img-area"><img src="{{ image_path }}" alt="" /></div>
-    {% else %}
+  <div class="slide layout-{{ layout }}">
+
+    {% if layout == "text-only" %}
       <div class="deco-circle large"></div>
       <div class="deco-circle medium"></div>
       <div class="deco-line"></div>
+    {% endif %}
+
+    {% if layout == "image-blur-bg" %}
+      <div class="blur-bg"><img src="{{ image_path }}" alt="" /></div>
+    {% endif %}
+
+    {% if layout == "image-top" or layout == "image-center" %}
+      <div class="img-area"><img src="{{ image_path }}" alt="" /></div>
     {% endif %}
 
     <div class="content">
