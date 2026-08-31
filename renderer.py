@@ -20,26 +20,28 @@ def _find_image(images_dir: Path, slide_index: int) -> Path | None:
     return None
 
 
+# 이 비율 이상이면 가로형으로 본다 (1080px 폭 기준 자연 높이 720px)
+WIDE_RATIO = 1.5
+
+
 def _select_layout(image_path: Path | None) -> str:
+    """Wide images get the band layout, everything else fills the card."""
     if image_path is None:
         return "text-only"
 
     with Image.open(image_path) as img:
         w, h = img.size
 
-    ratio = w / h
-
-    if ratio >= 1.5:
-        return "image-top"
-    elif ratio >= 0.85:
-        return "image-center"
-    else:
-        return "image-blur-bg"
+    return "image-band-blur" if w / h >= WIDE_RATIO else "image-blur-bg"
 
 
 def render_slides(slide_data: dict, theme: str, images_dir: Path | None) -> list[Path]:
     """Render all slides to output/html/ and return list of file paths."""
     HTML_DIR.mkdir(parents=True, exist_ok=True)
+
+    # 이전 실행이 더 많은 슬라이드를 만들었을 수 있으므로 먼저 비운다
+    for stale in HTML_DIR.glob("slide_*.html"):
+        stale.unlink()
 
     env = Environment(loader=FileSystemLoader(str(TEMPLATES_DIR)))
     theme_css = (THEMES_DIR / f"{theme}.css").as_uri()
@@ -86,13 +88,17 @@ def render_slides(slide_data: dict, theme: str, images_dir: Path | None) -> list
     summary = slide_data.get("summary", {})
     html = env.get_template("summary.html").render(
         theme_css=theme_css,
+        slide_index=summary_index,
         points=summary.get("points", []),
     )
     p = HTML_DIR / f"slide_{summary_index:02d}.html"
     p.write_text(html, encoding="utf-8")
     html_files.append(p)
 
-    html = env.get_template("cta.html").render(theme_css=theme_css)
+    html = env.get_template("cta.html").render(
+        theme_css=theme_css,
+        slide_index=cta_index,
+    )
     p = HTML_DIR / f"slide_{cta_index:02d}.html"
     p.write_text(html, encoding="utf-8")
     html_files.append(p)

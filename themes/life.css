@@ -2,6 +2,7 @@
 
 :root {
   --bg: #FFF8F5;
+  --bg-rgb: 255, 248, 245;
   --point: #D85A30;
   --sub: #F5C4B3;
   --base: #1A1A2E;
@@ -25,6 +26,17 @@
   color: #FFFFFF;
 }
 .layout-image-blur-bg .slide-num {
+  color: #FFFFFF;
+}
+
+/* image-band-blur 도 카드 전체가 사진 위이므로 텍스트를 밝게 뒤집는다 */
+.layout-image-band-blur .band-body .title {
+  color: #FFFFFF;
+}
+.layout-image-band-blur .band-body .body-text {
+  color: rgba(255, 255, 255, 0.85);
+}
+.layout-image-band-blur .slide-num {
   color: #FFFFFF;
 }
 

@@ -149,6 +149,76 @@
       color: #fff;
     }
 
+    /* ── image-band-blur (가로형) ── */
+    .layout-image-band-blur {
+      flex-direction: column;
+      /* 밴드가 max-height 에 걸려 공간을 다 못 먹으면 남는 만큼 위로 몰아
+         부제목 바닥은 항상 image-blur-bg 와 같은 지점(하단 96px)에 놓인다 */
+      justify-content: flex-end;
+    }
+    .layout-image-band-blur .blur-bg {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .layout-image-band-blur .blur-bg img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      /* scale 은 blur 가 가장자리를 투명하게 번지게 하는 것을 막는다 */
+      filter: blur(56px) brightness(0.5) saturate(1.1);
+      transform: scale(1.25);
+    }
+    .layout-image-band-blur .blur-bg::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      /* 텍스트 영역까지 이어지는 스크림 — 아래로 갈수록 짙어진다 */
+      background: linear-gradient(
+        to bottom,
+        rgba(0, 0, 0, 0.15) 0%,
+        rgba(0, 0, 0, 0.55) 55%,
+        rgba(0, 0, 0, 0.85) 100%
+      );
+    }
+    .layout-image-band-blur .band {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      /* 남는 세로 공간을 밴드가 흡수한다 (본문 슬라이드와 동일) */
+      flex: 1 1 auto;
+      min-height: 400px;
+      max-height: 720px;
+      overflow: hidden;
+      box-shadow: 0 12px 48px rgba(0, 0, 0, 0.45);
+    }
+    .layout-image-band-blur .band img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .layout-image-band-blur .band-body {
+      position: relative;
+      z-index: 2;
+      flex: 0 0 auto;
+      /* 배경을 갖지 않는다 — 뒤의 흐린 이미지가 그대로 비친다 */
+      padding: 96px;
+    }
+    /* 텍스트가 사진 위에 놓이므로 테마와 무관하게 밝게 */
+    .layout-image-band-blur .band-body .hook {
+      color: #fff;
+    }
+    .layout-image-band-blur .band-body .subtitle {
+      color: rgba(255, 255, 255, 0.8);
+    }
+    .layout-image-band-blur .band-body .label {
+      color: rgba(255, 255, 255, 0.7);
+    }
+    .layout-image-band-blur .slide-num {
+      color: #fff;
+    }
+
     /* ── shared content styles ── */
     .content {
       position: relative;
@@ -218,7 +288,7 @@
       <div class="deco-line"></div>
     {% endif %}
 
-    {% if layout == "image-blur-bg" %}
+    {% if layout in ["image-blur-bg", "image-band-blur"] %}
       <div class="blur-bg"><img src="{{ image_path }}" alt="" /></div>
     {% endif %}
 
@@ -226,12 +296,22 @@
       <div class="img-area"><img src="{{ image_path }}" alt="" /></div>
     {% endif %}
 
-    <div class="content">
-      <p class="label">{{ topic }}</p>
-      <h1 class="hook">{{ hook }}</h1>
-      <div class="divider"></div>
-      <p class="subtitle">{{ subtitle }}</p>
-    </div>
+    {% if layout == "image-band-blur" %}
+      <div class="band"><img src="{{ image_path }}" alt="" /></div>
+      <div class="band-body">
+        <p class="label">{{ topic }}</p>
+        <h1 class="hook">{{ hook }}</h1>
+        <div class="divider"></div>
+        <p class="subtitle">{{ subtitle }}</p>
+      </div>
+    {% else %}
+      <div class="content">
+        <p class="label">{{ topic }}</p>
+        <h1 class="hook">{{ hook }}</h1>
+        <div class="divider"></div>
+        <p class="subtitle">{{ subtitle }}</p>
+      </div>
+    {% endif %}
 
     <span class="slide-num">01</span>
   </div>

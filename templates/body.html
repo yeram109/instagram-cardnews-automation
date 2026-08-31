@@ -103,6 +103,67 @@
       width: 100%;
     }
 
+    /* ── image-band-blur (가로형) ── */
+    .layout-image-band-blur {
+      flex-direction: column;
+      /* 밴드가 max-height 에 걸려 공간을 다 못 먹으면 남는 만큼 위로 몰아
+         본문 바닥은 항상 image-blur-bg 와 같은 지점(하단 96px)에 놓인다 */
+      justify-content: flex-end;
+    }
+    .layout-image-band-blur .blur-bg {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .layout-image-band-blur .blur-bg img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      /* scale 은 blur 가 가장자리를 투명하게 번지게 하는 것을 막는다 */
+      filter: blur(56px) brightness(0.5) saturate(1.1);
+      transform: scale(1.25);
+    }
+    .layout-image-band-blur .blur-bg::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      /* 텍스트 영역까지 이어지는 스크림 — 아래로 갈수록 짙어진다 */
+      background: linear-gradient(
+        to bottom,
+        rgba(0, 0, 0, 0.15) 0%,
+        rgba(0, 0, 0, 0.55) 55%,
+        rgba(0, 0, 0, 0.85) 100%
+      );
+    }
+    .layout-image-band-blur .slide-num-tag {
+      background: rgba(var(--bg-rgb), 0.55);
+    }
+    .layout-image-band-blur .band {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      /* 남는 세로 공간을 밴드가 흡수해 본문은 항상 하단 96px 에 앉는다.
+         상한 720px 은 가로형 하한(1.5:1) 이미지가 크롭 없이 들어가는 높이 */
+      flex: 1 1 auto;
+      min-height: 400px;
+      max-height: 720px;
+      overflow: hidden;
+      box-shadow: 0 12px 48px rgba(0, 0, 0, 0.45);
+    }
+    .layout-image-band-blur .band img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .layout-image-band-blur .band-body {
+      position: relative;
+      z-index: 2;
+      flex: 0 0 auto;
+      /* 배경을 갖지 않는다 — 뒤의 흐린 이미지가 그대로 비친다 */
+      padding: 64px 96px 96px;
+    }
+
     /* ── text block shared ── */
     .slide-num-tag {
       display: inline-block;
@@ -170,7 +231,7 @@
 <body>
   <div class="slide layout-{{ layout }}">
 
-    {% if layout == "image-blur-bg" %}
+    {% if layout in ["image-blur-bg", "image-band-blur"] %}
       <div class="blur-bg"><img src="{{ image_path }}" alt="" /></div>
     {% endif %}
 
@@ -184,12 +245,22 @@
 
     <div class="accent-bar"></div>
 
-    <div class="text-block">
-      <span class="slide-num-tag">0{{ slide_index }}</span>
-      <h2 class="title">{{ title }}</h2>
-      <div class="divider"></div>
-      <p class="body-text">{{ body }}</p>
-    </div>
+    {% if layout == "image-band-blur" %}
+      <div class="band"><img src="{{ image_path }}" alt="" /></div>
+      <div class="band-body">
+        <span class="slide-num-tag">0{{ slide_index }}</span>
+        <h2 class="title">{{ title }}</h2>
+        <div class="divider"></div>
+        <p class="body-text">{{ body }}</p>
+      </div>
+    {% else %}
+      <div class="text-block">
+        <span class="slide-num-tag">0{{ slide_index }}</span>
+        <h2 class="title">{{ title }}</h2>
+        <div class="divider"></div>
+        <p class="body-text">{{ body }}</p>
+      </div>
+    {% endif %}
 
     <span class="slide-num">0{{ slide_index }}</span>
   </div>

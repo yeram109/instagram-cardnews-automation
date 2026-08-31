@@ -6,11 +6,11 @@ Claude Code CLI + Playwright 기반 인스타그램 카드뉴스 자동 생성 �
 
 > 테마: `tech` / 주제: AI가 바꾸는 개발자의 미래
 
-| 커버 | 본문 1 (image-top) | 본문 2 (image-split) | 본문 3 (image-blur-bg) |
+| 커버 | 본문 1 | 본문 2 | 본문 3 |
 |------|-------------------|----------------------|------------------------|
 | ![slide_01](assets/slide_01.png) | ![slide_02](assets/slide_02.png) | ![slide_03](assets/slide_03.png) | ![slide_04](assets/slide_04.png) |
 
-| 본문 4 (text-only) | 요약 | CTA |
+| 본문 4 | 요약 | CTA |
 |--------------------|------|-----|
 | ![slide_05](assets/slide_05.png) | ![slide_06](assets/slide_06.png) | ![slide_07](assets/slide_07.png) |
 
@@ -23,7 +23,7 @@ Claude Code CLI + Playwright 기반 인스타그램 카드뉴스 자동 생성 �
 - HTML 미리보기 — PNG 변환 전 브라우저에서 결과물을 먼저 확인
 - 인터랙티브 재생성 — 미리보기 후 피드백을 입력하면 Claude가 반영해서 재생성 (반복 가능)
 - HTML 직접 편집 지원 — output/html/ 파일을 직접 수정한 뒤 PNG로 변환
-- 레이아웃 자동 선택 — 이미지 비율(가로형/정방형/세로형)을 감지해 최적 레이아웃 적용
+- 레이아웃 자동 선택 — 이미지 비율을 감지해 가로형은 밴드 레이아웃, 그 외는 전면 배경 레이아웃 적용
 - 슬라이드 수 동적 조정 — 원문 분량에 따라 전체 슬라이드 6~8장 자동 결정
 - 3가지 테마 — info (딥 퍼플) / life (웜 코럴) / tech (나이트 블루)
 - 고해상도 PNG 캡처 — Playwright로 인스타그램 규격 1080×1350px 자동 캡처
@@ -74,7 +74,19 @@ python main.py --theme <테마> --topic <주제> --text <원문>
 | `--topic` | ✓ | 카드뉴스 제목 / 주제 |
 | `--text`  | ✓ | 슬라이드 생성에 사용할 원문 |
 | `--unsplash-key` | — | Unsplash Access Key (`.env` 설정 시 생략 가능) |
-| `--capture-only` | — | `output/html/` 의 HTML을 바로 PNG로 변환 |
+| `--render-only` | — | `output/slide_data.json` 으로 HTML 재렌더링 (PNG 변환 없음, `--theme` 필요) |
+| `--capture-only` | — | `output/html/` 의 HTML을 **그대로** PNG로 변환 (렌더링 없음) |
+
+`--render-only` 와 `--capture-only` 는 모두 Claude 호출과 Unsplash 다운로드를 건너뛰지만, HTML을 다시 만드는지가 다릅니다.
+
+| | HTML 재렌더링 | PNG 변환 | 반영되는 수정 |
+|---|---|---|---|
+| `--render-only` | O | X | `slide_data.json` 의 텍스트, `templates/`, `themes/` |
+| `--capture-only` | X | O | `output/html/` 을 직접 편집한 내용 |
+
+두 옵션은 이어서 쓰도록 만들어졌습니다. `--render-only` 로 HTML을 다시 만들어 브라우저에서 확인한 뒤, 마음에 들면 `--capture-only` 로 PNG를 뽑습니다.
+
+템플릿이나 테마 CSS를 고쳤다면 `--capture-only` 로는 반영되지 않습니다 — `--render-only` 를 쓰세요.
 
 <br>
 
@@ -109,13 +121,29 @@ images/slideN.* 있음  →  직접 추가한 파일 사용
 없음 + 그 외  →  텍스트 전용
 ```
 
-이미지 비율에 따라 레이아웃이 자동 선택됩니다.
+이미지 비율에 따라 레이아웃이 자동 선택됩니다. 커버와 본문 모두 같은 규칙을 씁니다.
 
-| 비율 (가로/세로) | 레이아웃 |
-|---------|---------|
-| >= 1.5 (가로형) | image-top |
-| 0.85 ~ 1.5 (정방형) | image-split |
-| < 0.85 (세로형) | image-blur-bg |
+| 비율 (가로/세로) | 레이아웃 | 구성 |
+|------------------|---------|------|
+| >= 1.5 (가로형) | `image-band-blur` | 1080px 풀블리드 이미지 밴드 → 그 아래 텍스트 |
+| < 1.5 (정방형·세로형) | `image-blur-bg` | 이미지를 카드 전면에 깔고 어둡게 눌러 그 위에 텍스트 |
+| 이미지 없음 | `text-only` | 텍스트만 |
+
+#### `image-band-blur`
+
+가로 이미지는 1080px 폭을 그대로 쓰고 세로만 잘라내 크롭 손실을 줄입니다. 카드 전체에는 같은 이미지를 흐리게(`blur(56px)`) 깔아 밴드 위아래 여백을 채우고, 그 위에 아래로 갈수록 짙어지는 스크림을 덮습니다.
+
+```
+상단 띠      흐린 이미지 (스크림 0.15)
+이미지 밴드   선명, 1080px 폭 · 높이 가변
+텍스트 영역   흐린 이미지 (스크림 0.55 → 0.85)
+```
+
+밴드 높이는 `flex` 로 남는 세로 공간을 흡수해 400~720px 사이에서 유동합니다. 상한 720px 은 가로형 판정 하한(1.5:1) 이미지가 크롭 없이 들어가는 높이입니다. 덕분에 본문 분량이 달라져도 마지막 텍스트의 바닥은 항상 하단 96px 지점에 놓여 `image-blur-bg` 슬라이드와 정렬이 맞습니다.
+
+커버와 본문의 차이는 밴드 아래 여백뿐입니다 — 커버 96px, 본문 64px.
+
+배경이 밝은 `life` 테마는 텍스트가 사진 위에 놓이므로 [themes/life.css](themes/life.css) 에서 제목·본문·슬라이드 번호를 밝은 색으로 뒤집습니다.
 
 <br>
 
@@ -155,13 +183,24 @@ PNG로 변환하시겠습니까?
 
 <br>
 
-### HTML 수정 후 나중에 PNG 변환
+### 나중에 다시 PNG로 변환
 
-`output/html/` 의 HTML을 수정해둔 상태에서 언제든 PNG로 변환할 수 있습니다.
+이미 생성해둔 결과물을 Claude 재호출 없이 다시 PNG로 뽑을 수 있습니다.
+
+`output/html/` 의 HTML을 직접 편집한 뒤 그대로 변환:
 
 ```bash
 python main.py --capture-only
 ```
+
+템플릿·테마를 고쳤거나 `slide_data.json` 의 텍스트를 손봤다면 재렌더링이 필요합니다:
+
+```bash
+python main.py --render-only --theme tech   # HTML 재생성 + 미리보기
+python main.py --capture-only               # 확인 후 PNG 변환
+```
+
+`--render-only` 는 HTML을 만들고 브라우저 미리보기를 연 뒤 종료합니다. PNG는 만들지 않으므로, 결과를 확인하고 레이아웃을 더 손볼 여지를 둡니다.
 
 <br>
 

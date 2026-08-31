@@ -36,7 +36,7 @@ def parse_args():
     parser.add_argument(
         "--render-only",
         action="store_true",
-        help="output/slide_data.json 으로 HTML 재렌더링 (텍스트/이미지 생성 생략)",
+        help="output/slide_data.json 으로 HTML 재렌더링 (PNG 변환은 하지 않음)",
     )
     parser.add_argument(
         "--capture-only",
@@ -88,17 +88,13 @@ def main():
             parser.error("--render-only 사용 시 --theme 는 필수입니다.")
         slide_data = load_slide_data()
         images_dir = IMAGES_DIR if IMAGES_DIR.exists() else None
-        print(f"[2/3] HTML 슬라이드 재렌더링 중... (테마: {args.theme})")
+        print(f"[재렌더링] HTML 슬라이드 렌더링 중... (테마: {args.theme})")
         html_files = render_slides(slide_data=slide_data, theme=args.theme, images_dir=images_dir)
-        print(f"  → output/html/ 에 저장됨")
+        print(f"  → output/html/ 에 {len(html_files)}장 저장됨")
         open_preview(html_files)
-        print("  → 브라우저에서 미리보기를 열었습니다\n")
-        input("  [엔터] PNG 변환 시작...")
-        print("\n[3/3] Playwright PNG 캡처 중...")
-        output_paths = capture_slides(html_files)
-        print("\n완료! 생성된 파일:")
-        for path in output_paths:
-            print(f"  {path}")
+        print("  → 브라우저에서 미리보기를 열었습니다")
+        print()
+        print("PNG로 변환하려면: python main.py --capture-only")
         return
 
     # 일반 모드: --theme / --topic / --text 필수
