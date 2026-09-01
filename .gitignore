@@ -20,7 +20,12 @@ env/
 # 임시 파일
 *.tmp
 cardnews_*/
-output/html/
+
+# 산출물 (렌더링 결과 · 생성된 슬라이드 텍스트)
+output/
+
+# 이미지 소스 (Unsplash 다운로드 + 직접 추가한 파일)
+images/
 
 # IDE
 .vscode/
