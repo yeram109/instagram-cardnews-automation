@@ -9,35 +9,39 @@ IMAGES_DIR = Path(__file__).parent / "images"
 _SUPPORTED_EXTS = {".jpg", ".jpeg", ".png", ".webp"}
 
 
-def _existing(slide_index: int) -> bool:
+def _existing(images_dir: Path, slide_index: int) -> bool:
     """Return True if a user-provided image already exists for this slide."""
     for ext in _SUPPORTED_EXTS:
-        if (IMAGES_DIR / f"slide{slide_index}{ext}").exists():
+        if (images_dir / f"slide{slide_index}{ext}").exists():
             return True
     return False
 
 
-def fetch_images(slide_data: dict, access_key: str) -> Path:
+def fetch_images(
+    slide_data: dict,
+    access_key: str,
+    images_dir: Path = IMAGES_DIR,
+) -> Path:
     """Download Unsplash images for slides that have image_query and no existing file."""
-    IMAGES_DIR.mkdir(exist_ok=True)
+    images_dir.mkdir(parents=True, exist_ok=True)
 
     cover = slide_data.get("cover", {})
     if query := cover.get("image_query"):
-        if _existing(1):
+        if _existing(images_dir, 1):
             print(f"  slide1 ← 직접 추가한 이미지 사용")
         else:
-            _download(query, access_key, IMAGES_DIR / "slide1.jpg")
+            _download(query, access_key, images_dir / "slide1.jpg")
 
     for slide in slide_data.get("slides", []):
         idx = slide.get("index")
         if not (query := slide.get("image_query")) or not idx:
             continue
-        if _existing(idx):
+        if _existing(images_dir, idx):
             print(f"  slide{idx} ← 직접 추가한 이미지 사용")
         else:
-            _download(query, access_key, IMAGES_DIR / f"slide{idx}.jpg")
+            _download(query, access_key, images_dir / f"slide{idx}.jpg")
 
-    return IMAGES_DIR
+    return images_dir
 
 
 def _download(query: str, access_key: str, dest: Path) -> None:
