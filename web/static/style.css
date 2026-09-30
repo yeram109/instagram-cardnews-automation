@@ -1,0 +1,327 @@
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+:root {
+  --bg: #12121a;
+  --panel: #1b1b26;
+  --panel-2: #23232f;
+  --border: #32323f;
+  --text: #ececf2;
+  --muted: #9b9bab;
+  --point: #7f77dd;
+  --point-hover: #948dea;
+  --danger: #ff7b7b;
+  --radius: 12px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* .modal / .placeholder 의 display:flex 가 [hidden] 의 기본 display:none 을 이긴다 */
+[hidden] { display: none !important; }
+
+body {
+  font-family: 'Pretendard', -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* ── topbar ── */
+.topbar {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  padding: 18px 28px;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel);
+}
+.topbar h1 { font-size: 19px; font-weight: 700; letter-spacing: -0.02em; }
+.topbar-note { font-size: 13px; color: var(--muted); }
+
+/* ── layout ── */
+.layout {
+  display: grid;
+  grid-template-columns: 420px 1fr;
+  gap: 20px;
+  padding: 20px 28px 60px;
+  align-items: start;
+}
+@media (max-width: 1100px) {
+  .layout { grid-template-columns: 1fr; }
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+}
+.form-panel { position: sticky; top: 20px; }
+@media (max-width: 1100px) { .form-panel { position: static; } }
+
+/* ── form ── */
+.field { border: 0; margin-bottom: 26px; }
+.field legend {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--point);
+  letter-spacing: 0.06em;
+  margin-bottom: 12px;
+}
+.label {
+  display: block;
+  font-size: 13px;
+  color: var(--muted);
+  margin: 14px 0 6px;
+}
+input[type="text"], textarea {
+  width: 100%;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  padding: 10px 12px;
+  resize: vertical;
+}
+input[type="text"]:focus, textarea:focus {
+  outline: none;
+  border-color: var(--point);
+}
+.hint { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+/* dropzone */
+.dropzone {
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 22px 16px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+}
+.dropzone:hover, .dropzone.dragover {
+  border-color: var(--point);
+  background: rgba(127, 119, 221, 0.08);
+}
+.dropzone p { font-size: 14px; }
+.dropzone .hint { margin-top: 6px; }
+
+/* thumbnails */
+.thumbs { list-style: none; display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+.thumbs:empty { margin-top: 0; }
+.thumb {
+  position: relative;
+  width: 78px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+}
+.thumb img { width: 100%; height: 78px; object-fit: cover; display: block; }
+.thumb-slot {
+  position: absolute; top: 4px; left: 4px;
+  background: rgba(0,0,0,.72);
+  color: #fff; font-size: 11px; font-weight: 700;
+  padding: 2px 6px; border-radius: 5px;
+}
+.thumb-remove {
+  position: absolute; top: 3px; right: 3px;
+  width: 20px; height: 20px; line-height: 18px;
+  border: 0; border-radius: 50%;
+  background: rgba(0,0,0,.72); color: #fff;
+  font-size: 14px; cursor: pointer;
+}
+.thumb-move { display: flex; }
+.thumb-move button {
+  flex: 1; border: 0; background: var(--panel-2);
+  color: var(--muted); cursor: pointer; font-size: 12px; padding: 3px 0;
+}
+.thumb-move button:hover:not(:disabled) { color: var(--text); background: var(--border); }
+.thumb-move button:disabled { opacity: .3; cursor: default; }
+
+.checkbox {
+  display: block;
+  font-size: 13px;
+  color: var(--text);
+  margin-top: 14px;
+  cursor: pointer;
+}
+.checkbox .hint { display: block; margin-left: 22px; }
+
+/* themes */
+.themes { display: flex; gap: 10px; }
+.theme-card {
+  flex: 1;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 8px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+}
+.theme-card input { position: absolute; opacity: 0; }
+.theme-card:has(input:checked) {
+  border-color: var(--point);
+  background: rgba(127, 119, 221, 0.12);
+}
+.swatch { display: block; height: 32px; border-radius: 6px; margin-bottom: 8px; }
+.swatch-info { background: linear-gradient(135deg, #1a1a2e 40%, #7f77dd); }
+.swatch-life { background: linear-gradient(135deg, #fdf6ec 40%, #e08b5a); }
+.swatch-tech { background: linear-gradient(135deg, #0d1117 40%, #38bdf8); }
+.theme-name { font-size: 13px; font-weight: 600; }
+
+/* buttons */
+button, .link-btn {
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.primary {
+  width: 100%;
+  background: var(--point);
+  color: #fff;
+  border: 0;
+  padding: 13px;
+  transition: background .15s;
+}
+.primary:hover:not(:disabled) { background: var(--point-hover); }
+.primary:disabled { opacity: .5; cursor: default; }
+.link-btn { display: block; text-align: center; text-decoration: none; padding: 13px; }
+
+#feedback-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 10px 16px;
+  margin-top: 8px;
+}
+#feedback-btn:hover:not(:disabled) { border-color: var(--point); }
+
+.error {
+  margin-top: 12px;
+  color: var(--danger);
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ── preview ── */
+.placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  min-height: 400px;
+  color: var(--muted);
+  text-align: center;
+  font-size: 14px;
+}
+.spinner {
+  width: 34px; height: 34px;
+  border: 3px solid var(--border);
+  border-top-color: var(--point);
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+#progress-step { color: var(--text); font-size: 15px; font-weight: 600; }
+
+.result-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.result-head h2 { font-size: 16px; font-weight: 700; }
+.result-actions { width: 220px; }
+
+/* 1080×1350 을 그대로 축소해 실제 PNG와 픽셀 단위로 같은 화면을 보여준다 */
+.cards { display: flex; flex-wrap: wrap; gap: 14px; }
+.card {
+  position: relative;
+  width: 260px;
+  height: 325px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  cursor: zoom-in;
+  background: #000;
+}
+.card iframe {
+  width: 1080px;
+  height: 1350px;
+  border: 0;
+  position: absolute;
+  top: 0; left: 0;
+  transform: scale(0.24074);
+  transform-origin: top left;
+  pointer-events: none;
+}
+.card-label {
+  position: absolute;
+  bottom: 6px; left: 6px;
+  background: rgba(0,0,0,.7);
+  color: #fff;
+  font-size: 11px;
+  padding: 2px 7px;
+  border-radius: 5px;
+}
+
+.downloads, .feedback {
+  margin-top: 26px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+.downloads h3, .feedback h3 { font-size: 14px; font-weight: 700; margin-bottom: 10px; }
+.downloads .link-btn { max-width: 260px; }
+.png-list { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.png-list a {
+  font-size: 12px;
+  color: var(--muted);
+  text-decoration: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 5px 10px;
+}
+.png-list a:hover { color: var(--text); border-color: var(--point); }
+
+/* ── modal ── */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+.modal-stage {
+  width: 594px;
+  height: 742px;
+  overflow: hidden;
+  border-radius: 10px;
+  position: relative;
+  background: #000;
+}
+.modal-stage iframe {
+  width: 1080px;
+  height: 1350px;
+  border: 0;
+  position: absolute;
+  top: 0; left: 0;
+  transform: scale(0.55);
+  transform-origin: top left;
+}
+.modal-close {
+  position: absolute;
+  top: 20px; right: 28px;
+  width: 40px; height: 40px;
+  border: 0; border-radius: 50%;
+  background: rgba(255,255,255,.15);
+  color: #fff; font-size: 24px; line-height: 1;
+}

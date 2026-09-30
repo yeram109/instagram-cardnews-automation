@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Callable
 
 from jinja2 import Environment, FileSystemLoader
 from PIL import Image
@@ -10,7 +11,7 @@ HTML_DIR = Path(__file__).parent / "output" / "html"
 _SUPPORTED_EXTS = {".jpg", ".jpeg", ".png", ".webp"}
 
 
-def _find_image(images_dir: Path, slide_index: int) -> Path | None:
+def _find_image(images_dir: Path | None, slide_index: int) -> Path | None:
     if images_dir is None:
         return None
     for ext in _SUPPORTED_EXTS:
@@ -35,16 +36,33 @@ def _select_layout(image_path: Path | None) -> str:
     return "image-band-blur" if w / h >= WIDE_RATIO else "image-blur-bg"
 
 
-def render_slides(slide_data: dict, theme: str, images_dir: Path | None) -> list[Path]:
-    """Render all slides to output/html/ and return list of file paths."""
-    HTML_DIR.mkdir(parents=True, exist_ok=True)
+def _file_uri(path: Path) -> str:
+    return path.resolve().as_uri()
+
+
+def render_slides(
+    slide_data: dict,
+    theme: str,
+    images_dir: Path | None,
+    html_dir: Path = HTML_DIR,
+    theme_css_url: str | None = None,
+    image_url_of: Callable[[Path], str] | None = None,
+) -> list[Path]:
+    """Render all slides to ``html_dir`` and return list of file paths.
+
+    CLI 모드는 기본값(file:// URI)을 그대로 쓰고, 웹 모드는 http 경로를 넘긴다.
+    브라우저가 http 문서 안에서 file:// 리소스를 차단하기 때문이다.
+    """
+    html_dir.mkdir(parents=True, exist_ok=True)
 
     # 이전 실행이 더 많은 슬라이드를 만들었을 수 있으므로 먼저 비운다
-    for stale in HTML_DIR.glob("slide_*.html"):
+    for stale in html_dir.glob("slide_*.html"):
         stale.unlink()
 
     env = Environment(loader=FileSystemLoader(str(TEMPLATES_DIR)))
-    theme_css = (THEMES_DIR / f"{theme}.css").as_uri()
+    if theme_css_url is None:
+        theme_css_url = _file_uri(THEMES_DIR / f"{theme}.css")
+    to_url = image_url_of or _file_uri
 
     html_files: list[Path] = []
 
@@ -52,14 +70,14 @@ def render_slides(slide_data: dict, theme: str, images_dir: Path | None) -> list
     cover_image = _find_image(images_dir, 1)
     cover_layout = _select_layout(cover_image)
     html = env.get_template("cover.html").render(
-        theme_css=theme_css,
+        theme_css=theme_css_url,
         topic=slide_data.get("topic", ""),
         hook=cover.get("hook", ""),
         subtitle=cover.get("subtitle", ""),
         layout=cover_layout,
-        image_path=cover_image.resolve().as_uri() if cover_image else "",
+        image_path=to_url(cover_image) if cover_image else "",
     )
-    p = HTML_DIR / "slide_01.html"
+    p = html_dir / "slide_01.html"
     p.write_text(html, encoding="utf-8")
     html_files.append(p)
 
@@ -71,14 +89,14 @@ def render_slides(slide_data: dict, theme: str, images_dir: Path | None) -> list
         layout = _select_layout(image_path)
 
         html = env.get_template("body.html").render(
-            theme_css=theme_css,
+            theme_css=theme_css_url,
             slide_index=idx,
             title=slide.get("title", ""),
             body=slide.get("body", ""),
             layout=layout,
-            image_path=image_path.resolve().as_uri() if image_path else "",
+            image_path=to_url(image_path) if image_path else "",
         )
-        p = HTML_DIR / f"slide_{idx:02d}.html"
+        p = html_dir / f"slide_{idx:02d}.html"
         p.write_text(html, encoding="utf-8")
         html_files.append(p)
 
@@ -87,19 +105,19 @@ def render_slides(slide_data: dict, theme: str, images_dir: Path | None) -> list
 
     summary = slide_data.get("summary", {})
     html = env.get_template("summary.html").render(
-        theme_css=theme_css,
+        theme_css=theme_css_url,
         slide_index=summary_index,
         points=summary.get("points", []),
     )
-    p = HTML_DIR / f"slide_{summary_index:02d}.html"
+    p = html_dir / f"slide_{summary_index:02d}.html"
     p.write_text(html, encoding="utf-8")
     html_files.append(p)
 
     html = env.get_template("cta.html").render(
-        theme_css=theme_css,
+        theme_css=theme_css_url,
         slide_index=cta_index,
     )
-    p = HTML_DIR / f"slide_{cta_index:02d}.html"
+    p = html_dir / f"slide_{cta_index:02d}.html"
     p.write_text(html, encoding="utf-8")
     html_files.append(p)
 

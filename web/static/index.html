@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>인스타그램 카드뉴스 생성기</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1>인스타그램 카드뉴스 생성기</h1>
+    <span class="topbar-note">로컬 서버 · 1080 × 1350</span>
+  </header>
+
+  <main class="layout">
+    <!-- ── 좌측: 입력 폼 ── -->
+    <section class="panel form-panel">
+      <form id="job-form">
+        <fieldset class="field">
+          <legend>1. 이미지</legend>
+          <div id="dropzone" class="dropzone">
+            <p><strong>이미지를 끌어다 놓거나 클릭</strong></p>
+            <p class="hint">업로드 순서대로 <b>커버 → 본문</b> 슬라이드에 배치됩니다.<br />
+              JPG · PNG · WEBP</p>
+            <input type="file" id="file-input" accept="image/jpeg,image/png,image/webp" multiple hidden />
+          </div>
+          <ul id="thumbs" class="thumbs"></ul>
+          <label class="checkbox">
+            <input type="checkbox" id="use-unsplash" />
+            이미지가 없는 슬라이드는 Unsplash에서 자동으로 채우기
+            <span class="hint">(.env의 UNSPLASH_ACCESS_KEY 필요)</span>
+          </label>
+        </fieldset>
+
+        <fieldset class="field">
+          <legend>2. 테마</legend>
+          <div class="themes">
+            <label class="theme-card" data-theme="info">
+              <input type="radio" name="theme" value="info" checked />
+              <span class="swatch swatch-info"></span>
+              <span class="theme-name">info</span>
+            </label>
+            <label class="theme-card" data-theme="life">
+              <input type="radio" name="theme" value="life" />
+              <span class="swatch swatch-life"></span>
+              <span class="theme-name">life</span>
+            </label>
+            <label class="theme-card" data-theme="tech">
+              <input type="radio" name="theme" value="tech" />
+              <span class="swatch swatch-tech"></span>
+              <span class="theme-name">tech</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset class="field">
+          <legend>3. 내용</legend>
+          <label class="label" for="topic">제목 / 주제</label>
+          <input type="text" id="topic" placeholder="예) 2026년 AI 트렌드" required />
+
+          <label class="label" for="text">본문 원문</label>
+          <textarea id="text" rows="12" placeholder="카드뉴스로 만들 원문을 붙여넣으세요. 분량에 따라 본문 슬라이드가 4~5장으로 구성됩니다." required></textarea>
+        </fieldset>
+
+        <button type="submit" id="generate-btn" class="primary">카드뉴스 생성</button>
+        <p id="form-error" class="error" hidden></p>
+      </form>
+    </section>
+
+    <!-- ── 우측: 미리보기 ── -->
+    <section class="panel preview-panel">
+      <div id="idle" class="placeholder">
+        <p>왼쪽에서 내용을 입력하고 <b>카드뉴스 생성</b>을 누르세요.</p>
+      </div>
+
+      <div id="progress" class="placeholder" hidden>
+        <div class="spinner"></div>
+        <p id="progress-step">준비 중...</p>
+        <p class="hint">텍스트 생성에 20~40초 정도 걸립니다.</p>
+      </div>
+
+      <div id="result" hidden>
+        <div class="result-head">
+          <h2>미리보기 <span id="slide-count" class="hint"></span></h2>
+          <div class="result-actions">
+            <button type="button" id="export-btn" class="primary">저장 (PNG 다운로드)</button>
+          </div>
+        </div>
+
+        <div id="cards" class="cards"></div>
+
+        <div id="downloads" class="downloads" hidden>
+          <h3>다운로드</h3>
+          <a id="zip-link" class="primary link-btn" download>전체 ZIP 받기</a>
+          <ul id="png-list" class="png-list"></ul>
+        </div>
+
+        <div class="feedback">
+          <h3>마음에 안 드나요?</h3>
+          <textarea id="feedback" rows="2" placeholder="예) 훅 문구를 더 자극적으로, 본문은 3장으로 줄여주세요"></textarea>
+          <button type="button" id="feedback-btn">피드백 주고 다시 생성</button>
+        </div>
+
+        <p id="result-error" class="error" hidden></p>
+      </div>
+    </section>
+  </main>
+
+  <!-- 확대 보기 -->
+  <div id="modal" class="modal" hidden>
+    <button type="button" id="modal-close" class="modal-close" aria-label="닫기">×</button>
+    <div class="modal-stage"><iframe id="modal-frame" title="슬라이드 확대"></iframe></div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

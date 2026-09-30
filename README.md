@@ -17,6 +17,7 @@ Claude Code CLI + Playwright 기반 인스타그램 카드뉴스 자동 생성 �
 <br>
 
 ## 1. 주요 기능
+- 웹 UI — 브라우저에서 이미지 업로드 · 테마 선택 · 미리보기 · PNG 다운로드까지 한 화면에서 처리 (로컬 서버)
 - 슬라이드 텍스트 자동 생성 — Claude Code CLI가 원문을 분석해 커버 훅 문구, 본문, 요약 텍스트를 JSON으로 생성
 - Unsplash 이미지 자동 삽입 — Claude가 생성한 `image_query`로 Unsplash에서 이미지를 자동 검색·다운로드
 - 이미지 혼용 지원 — `images/` 폴더에 직접 추가한 파일이 있으면 우선 사용, 없는 슬라이드만 Unsplash로 채움
@@ -62,7 +63,32 @@ UNSPLASH_ACCESS_KEY=여기에_키_입력
 
 <br>
 
-### 2-4. 사용법
+### 2-4. 웹 UI로 사용하기
+
+브라우저에서 이미지를 올리고, 테마를 고르고, 미리보기를 확인한 뒤 PNG를 내려받습니다.
+
+```bash
+python run_web.py
+```
+
+`http://127.0.0.1:8000` 이 자동으로 열립니다. (`--port` / `--host` / `--no-browser` 옵션 지원)
+
+**사용 순서**
+
+1. **이미지 업로드** — 드래그&드롭 또는 클릭. **업로드 순서대로** 커버(1번) → 본문 슬라이드에 배치되며, 썸네일의 `←` `→` 로 순서를 바꿀 수 있습니다. 이미지를 올리지 않은 슬라이드는 텍스트 전용 레이아웃이 됩니다.
+2. **테마 선택** — info / life / tech
+3. **제목·본문 입력** 후 `카드뉴스 생성` — Claude가 슬라이드 텍스트를 만드는 데 20~40초 정도 걸립니다.
+4. **미리보기 확인** — 실제 1080×1350 HTML을 그대로 축소해 보여주므로 최종 PNG와 픽셀 단위로 같습니다. 카드를 클릭하면 크게 볼 수 있습니다.
+5. **피드백 재생성** — 마음에 들지 않으면 피드백을 입력해 다시 생성 (반복 가능)
+6. **저장** — `저장 (PNG 다운로드)` 를 누르면 Playwright가 PNG로 캡처하고 ZIP으로 내려받습니다. 개별 PNG도 따로 받을 수 있습니다.
+
+작업 산출물은 `runs/<작업ID>/` 아래에 격리 저장되며, 서버를 다시 켤 때 24시간이 지난 폴더는 자동 정리됩니다.
+
+Unsplash 자동 채우기 체크박스는 `.env` 에 `UNSPLASH_ACCESS_KEY` 가 있을 때만 동작합니다.
+
+<br>
+
+### 2-5. CLI로 사용하기
 
 ```bash
 python main.py --theme <테마> --topic <주제> --text <원문>
@@ -90,7 +116,7 @@ python main.py --theme <테마> --topic <주제> --text <원문>
 
 <br>
 
-### 2-5. 테마
+### 2-6. 테마
 
 | `info` | `life` | `tech` |
 |--------|--------|--------|
@@ -99,7 +125,7 @@ python main.py --theme <테마> --topic <주제> --text <원문>
 
 <br>
 
-### 2-6. 이미지 사용
+### 2-7. 이미지 사용
 
 이미지 소스는 두 가지를 혼용할 수 있으며, 모두 `images/` 폴더 하나로 통합 관리됩니다.
 
@@ -147,7 +173,7 @@ images/slideN.* 있음  →  직접 추가한 파일 사용
 
 <br>
 
-### 2-7. 사용 예시
+### 2-8. 사용 예시
 
 ```bash
 python main.py \
@@ -229,6 +255,11 @@ python main.py --capture-only               # 확인 후 PNG 변환
 ```
 .
 ├── main.py            # CLI 진입점
+├── run_web.py         # 웹 UI 로컬 서버 실행
+├── web/
+│   ├── app.py         # FastAPI 라우트 (업로드 · 생성 · 미리보기 · 내보내기)
+│   ├── jobs.py        # 잡 저장소 + 워커 스레드
+│   └── static/        # 프런트엔드 (index.html · app.js · style.css)
 ├── generator.py       # Claude Code CLI로 슬라이드 텍스트 생성
 ├── image_fetcher.py   # Unsplash 이미지 다운로드
 ├── renderer.py        # Jinja2 HTML 렌더링 + 레이아웃 선택
@@ -244,8 +275,13 @@ python main.py --capture-only               # 확인 후 PNG 변환
 │   ├── life.css
 │   └── tech.css
 ├── .env               # Unsplash API 키 (gitignore 적용)
-├── output/
+├── output/            # CLI 산출물
 │   ├── html/          # 렌더링된 HTML 중간 결과물
 │   └── slide_01.png   # 최종 PNG (자동 생성)
+├── runs/              # 웹 UI 산출물 (작업별로 격리, 24시간 뒤 자동 정리)
+│   └── <작업ID>/
+│       ├── images/    # 업로드한 이미지
+│       ├── html/      # 렌더링된 HTML
+│       └── png/       # 캡처된 PNG + ZIP
 └── requirements.txt
 ```

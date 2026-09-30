@@ -24,6 +24,9 @@ cardnews_*/
 # 산출물 (렌더링 결과 · 생성된 슬라이드 텍스트)
 output/
 
+# 웹 UI 잡별 작업 폴더
+runs/
+
 # 이미지 소스 (Unsplash 다운로드 + 직접 추가한 파일)
 images/
 
