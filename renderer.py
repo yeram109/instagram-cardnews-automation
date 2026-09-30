@@ -25,13 +25,27 @@ def _find_image(images_dir: Path | None, slide_index: int) -> Path | None:
 WIDE_RATIO = 1.5
 
 
+# EXIF orientation 5~8 은 90°/270° 회전이라 브라우저가 가로세로를 바꿔 그린다.
+# 휴대폰 세로 사진은 가로로 저장되고 이 태그만 붙는 경우가 많다.
+_SWAPPED_ORIENTATIONS = {5, 6, 7, 8}
+_ORIENTATION_TAG = 0x0112
+
+
+def _displayed_size(img: Image.Image) -> tuple[int, int]:
+    """Return the size the browser will actually render, honoring EXIF orientation."""
+    w, h = img.size
+    if img.getexif().get(_ORIENTATION_TAG) in _SWAPPED_ORIENTATIONS:
+        return h, w
+    return w, h
+
+
 def _select_layout(image_path: Path | None) -> str:
     """Wide images get the band layout, everything else fills the card."""
     if image_path is None:
         return "text-only"
 
     with Image.open(image_path) as img:
-        w, h = img.size
+        w, h = _displayed_size(img)
 
     return "image-band-blur" if w / h >= WIDE_RATIO else "image-blur-bg"
 
