@@ -5,6 +5,8 @@ const state = {
   jobId: null,
   polling: null,
   mode: null,     // "generate" | "export"
+  job: null,      // 마지막으로 받은 잡 상태 (편집 폼의 원본)
+  editing: false,
 };
 
 // ────────────────────────────────────────── 이미지 선택
@@ -102,6 +104,8 @@ $("job-form").addEventListener("submit", async (e) => {
   state.files.forEach((file) => form.append("images", file, file.name));
 
   showError("form-error", null);
+  state.job = null;
+  if (state.editing) setEditing(false);
   setBusy(true);
   showPanel("progress");
   $("progress-step").textContent = "업로드 중...";
@@ -159,6 +163,7 @@ async function poll() {
     }
 
     if (job.status === "ready") {
+      state.job = job;
       showPanel("result");
       if (state.mode === "export" && job.zip_url) {
         showDownloads(job);
@@ -203,6 +208,8 @@ function renderCards(job) {
   $("downloads").hidden = true;
   $("export-btn").textContent = "저장 (PNG 다운로드)";
   showError("result-error", null);
+
+  if (state.editing) buildEditor(job, bust);
 }
 
 function showDownloads(job) {
@@ -224,6 +231,149 @@ function showDownloads(job) {
   $("export-btn").textContent = "다시 저장";
   $("zip-link").click();  // ZIP 자동 다운로드
 }
+
+// ────────────────────────────────────────── 텍스트 편집
+const KIND_LABEL = { cover: "커버", body: "본문", summary: "요약", cta: "CTA" };
+
+function field(parent, labelText, value, { multiline = false, rows = 3 } = {}) {
+  const label = document.createElement("label");
+  label.className = "label";
+  label.textContent = labelText;
+
+  const input = document.createElement(multiline ? "textarea" : "input");
+  if (multiline) input.rows = rows;
+  else input.type = "text";
+  input.value = value || "";
+
+  label.htmlFor = input.id = `f_${Math.random().toString(36).slice(2, 9)}`;
+  parent.append(label, input);
+  return input;
+}
+
+// 입력 요소를 슬라이드별로 들고 있다가 저장할 때 읽는다
+let editInputs = null;
+
+function buildEditor(job, bust) {
+  const rows = $("edit-rows");
+  rows.innerHTML = "";
+  editInputs = { topic: null, cover: {}, slides: new Map(), points: [] };
+
+  const text = job.text || {};
+  const bodyByIndex = new Map((text.slides || []).map((s) => [s.index, s]));
+
+  job.slides.forEach((slide, i) => {
+    const row = document.createElement("div");
+    row.className = "edit-row";
+
+    const card = document.createElement("div");
+    card.className = "card";
+    const frame = document.createElement("iframe");
+    frame.src = `${slide.html_url}?t=${bust}`;
+    frame.setAttribute("scrolling", "no");
+    frame.title = slide.name;
+    card.append(frame);
+    card.onclick = () => openModal(`${slide.html_url}?t=${bust}`);
+
+    const fields = document.createElement("div");
+    fields.className = "edit-fields";
+    const heading = document.createElement("h4");
+    heading.textContent = `${String(i + 1).padStart(2, "0")} ${KIND_LABEL[slide.kind] || ""}`;
+    fields.append(heading);
+
+    if (slide.kind === "cover") {
+      editInputs.topic = field(fields, "라벨 (주제)", text.topic);
+      editInputs.cover.hook = field(fields, "훅 문구", (text.cover || {}).hook);
+      editInputs.cover.subtitle = field(fields, "부제목", (text.cover || {}).subtitle, { multiline: true, rows: 2 });
+    } else if (slide.kind === "body") {
+      const data = bodyByIndex.get(slide.index) || {};
+      const title = field(fields, "제목", data.title);
+      const body = field(fields, "본문 (줄바꿈 그대로 반영)", data.body, { multiline: true, rows: 4 });
+      editInputs.slides.set(slide.index, { title, body });
+    } else if (slide.kind === "summary") {
+      const points = (text.summary || {}).points || [];
+      points.forEach((point, n) => {
+        editInputs.points.push(field(fields, `요점 ${n + 1}`, point));
+      });
+      const note = document.createElement("p");
+      note.className = "fixed-note";
+      note.style.marginTop = "10px";
+      note.textContent = "비워두면 해당 요점이 빠집니다.";
+      fields.append(note);
+    } else {
+      const note = document.createElement("p");
+      note.className = "fixed-note";
+      note.textContent = "CTA 문구는 templates/cta.html 에 고정돼 있어 여기서 수정할 수 없습니다.";
+      fields.append(note);
+    }
+
+    row.append(card, fields);
+    rows.append(row);
+  });
+}
+
+function collectEdits() {
+  return {
+    topic: editInputs.topic ? editInputs.topic.value : undefined,
+    cover: {
+      hook: editInputs.cover.hook ? editInputs.cover.hook.value : undefined,
+      subtitle: editInputs.cover.subtitle ? editInputs.cover.subtitle.value : undefined,
+    },
+    slides: [...editInputs.slides.entries()].map(([index, el]) => ({
+      index,
+      title: el.title.value,
+      body: el.body.value,
+    })),
+    summary: { points: editInputs.points.map((el) => el.value) },
+  };
+}
+
+function setEditing(on) {
+  state.editing = on;
+  $("editor").hidden = !on;
+  $("cards").hidden = on;
+  $("edit-btn").classList.toggle("active", on);
+  $("edit-btn").textContent = on ? "편집 닫기" : "텍스트 편집";
+  setEditStatus("");
+  if (on && state.job) buildEditor(state.job, Date.now());
+}
+
+function setEditStatus(message, ok = false) {
+  const el = $("edit-status");
+  el.textContent = message;
+  el.classList.toggle("ok", ok);
+}
+
+$("edit-btn").addEventListener("click", () => {
+  if (!state.job) return;
+  setEditing(!state.editing);
+});
+
+$("revert-btn").addEventListener("click", () => {
+  if (state.job) buildEditor(state.job, Date.now());
+  setEditStatus("서버에 저장된 내용으로 되돌렸습니다");
+});
+
+$("rerender-btn").addEventListener("click", async () => {
+  setBusy(true);
+  setEditStatus("렌더링 중...");
+  showError("result-error", null);
+  try {
+    const res = await fetch(`/api/jobs/${state.jobId}/text`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(collectEdits()),
+    });
+    const job = await parse(res);
+    state.job = job;
+    renderCards(job);   // 미리보기와 편집 폼을 새 HTML 로 함께 갱신
+    setEditStatus("반영되었습니다", true);
+  } catch (err) {
+    setEditStatus("");
+    showError("result-error", err.message);
+  } finally {
+    setBusy(false);
+  }
+});
 
 // ────────────────────────────────────────── 저장 / 피드백
 $("export-btn").addEventListener("click", async () => {
@@ -297,6 +447,9 @@ function setBusy(busy) {
   $("generate-btn").disabled = busy;
   $("export-btn").disabled = busy;
   $("feedback-btn").disabled = busy;
+  $("edit-btn").disabled = busy;
+  $("rerender-btn").disabled = busy;
+  $("revert-btn").disabled = busy;
   $("generate-btn").textContent = busy ? "생성 중..." : "카드뉴스 생성";
 }
 

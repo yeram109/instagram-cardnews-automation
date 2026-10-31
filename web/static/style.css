@@ -238,7 +238,8 @@ button, .link-btn {
   margin-bottom: 16px;
 }
 .result-head h2 { font-size: 16px; font-weight: 700; }
-.result-actions { width: 220px; }
+.result-actions { flex-shrink: 0; }
+.result-actions .primary { width: auto; padding: 12px 22px; }
 
 /* 1080×1350 을 그대로 축소해 실제 PNG와 픽셀 단위로 같은 화면을 보여준다 */
 .cards { display: flex; flex-wrap: wrap; gap: 14px; }
@@ -271,6 +272,72 @@ button, .link-btn {
   padding: 2px 7px;
   border-radius: 5px;
 }
+
+/* ── 텍스트 편집 ── */
+.editor-note { margin-bottom: 16px; }
+
+.edit-row {
+  display: flex;
+  gap: 18px;
+  padding: 16px 0;
+  border-top: 1px solid var(--border);
+}
+.edit-row:first-child { border-top: 0; padding-top: 0; }
+
+/* 미리보기는 폼 옆에 붙여 고친 결과를 바로 대조한다 */
+.edit-row .card {
+  width: 176px;
+  height: 220px;
+  flex-shrink: 0;
+  cursor: zoom-in;
+}
+.edit-row .card iframe { transform: scale(0.16296); }
+
+.edit-fields { flex: 1; min-width: 0; }
+.edit-fields h4 {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--point);
+  margin-bottom: 10px;
+}
+.edit-fields .label { margin-top: 10px; }
+.edit-fields .label:first-of-type { margin-top: 0; }
+.edit-fields textarea { resize: vertical; }
+.edit-fields .fixed-note {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.editor-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+.editor-actions .primary { width: auto; padding: 11px 24px; }
+#revert-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 10px 18px;
+}
+#revert-btn:hover:not(:disabled) { border-color: var(--point); }
+#edit-status.ok { color: #7fd99a; }
+
+#edit-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 12px 18px;
+  white-space: nowrap;
+}
+#edit-btn:hover:not(:disabled) { border-color: var(--point); }
+#edit-btn.active { border-color: var(--point); background: rgba(127, 119, 221, 0.15); }
+
+.result-actions { display: flex; gap: 10px; }
 
 .downloads, .feedback {
   margin-top: 26px;

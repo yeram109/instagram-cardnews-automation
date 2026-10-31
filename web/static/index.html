@@ -83,11 +83,22 @@
         <div class="result-head">
           <h2>미리보기 <span id="slide-count" class="hint"></span></h2>
           <div class="result-actions">
+            <button type="button" id="edit-btn">텍스트 편집</button>
             <button type="button" id="export-btn" class="primary">저장 (PNG 다운로드)</button>
           </div>
         </div>
 
         <div id="cards" class="cards"></div>
+
+        <div id="editor" hidden>
+          <p class="hint editor-note">텍스트를 고치고 <b>재렌더링</b>을 누르면 Claude 재호출 없이 바로 반영됩니다.</p>
+          <div id="edit-rows"></div>
+          <div class="editor-actions">
+            <button type="button" id="rerender-btn" class="primary">재렌더링</button>
+            <button type="button" id="revert-btn">되돌리기</button>
+            <span id="edit-status" class="hint"></span>
+          </div>
+        </div>
 
         <div id="downloads" class="downloads" hidden>
           <h3>다운로드</h3>

@@ -7,7 +7,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
+from fastapi import Body, FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from PIL import Image, UnidentifiedImageError
@@ -115,6 +115,23 @@ def regenerate(job_id: str, feedback: str = Form(...)) -> JSONResponse:
         raise HTTPException(400, "피드백 내용을 입력해주세요.")
     jobs.submit_generate(job, feedback=feedback.strip())
     return JSONResponse({"job_id": job.id})
+
+
+@app.post("/api/jobs/{job_id}/text")
+def edit_text(job_id: str, payload: dict = Body(...)) -> JSONResponse:
+    """편집한 텍스트를 반영해 다시 렌더링한다 (Claude 재호출 없음)."""
+    job = jobs.get_job(job_id)
+    if job is None:
+        raise HTTPException(404, "존재하지 않는 작업입니다.")
+    if job.status in ("running", "exporting"):
+        raise HTTPException(409, "이미 작업이 진행 중입니다.")
+
+    try:
+        jobs.apply_text_edit(job, payload)
+    except ValueError as exc:
+        raise HTTPException(400, str(exc))
+
+    return JSONResponse(job.to_dict())
 
 
 @app.post("/api/jobs/{job_id}/export")
